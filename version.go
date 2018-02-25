@@ -28,13 +28,18 @@ func processError(err error) {
 	}
 }
 
-func extractVersion(str string) (string, error) {
-	re := regexp.MustCompile("(\\d[\\d\\.]*)")
-	match := re.FindStringSubmatch(str)
-	if len(match) == 0 {
-		return "", fmt.Errorf("Can't extract version from %s", str)
+// ExtractVersion parse string and extract version number
+func ExtractVersion(str string) (string, error) {
+	patterns := [...]string{"version (\\d+.\\d+.d\\+)", "version (\\d[\\d\\.]*)", "(\\d[\\d\\.]*)"}
+	for _, pattern := range patterns {
+		re := regexp.MustCompile(pattern)
+		match := re.FindStringSubmatch(str)
+		if len(match) != 0 {
+			return match[1], nil
+		}
 	}
-	return match[0], nil
+
+	return "", fmt.Errorf("Can't extract version from %s", str)
 }
 
 func main() {
@@ -62,7 +67,7 @@ func main() {
 			versionString = strings.Trim(versionString, "\n ")
 		}
 
-		checkVersion, err := extractVersion(versionString)
+		checkVersion, err := ExtractVersion(versionString)
 		processError(err)
 
 		ver, err := version.NewVersion(checkVersion)
