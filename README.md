@@ -26,7 +26,7 @@ go version | version ">=1.9"
 
 `version -b "..."` returns `true|false` that can be used in bash scripts
 
-Check `git` version by using [pipeline](https://en.wikipedia.org/wiki/Pipeline_(Unix):
+Check `git` version by using [pipeline](https://en.wikipedia.org/wiki/Pipeline_%28Unix%29):
 ```bash
 #!/bin/bash
 
