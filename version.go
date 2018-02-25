@@ -20,7 +20,7 @@ var (
 func processError(err error) {
 	if err != nil {
 		if booleanMode {
-			fmt.Print("0")
+			fmt.Print("false")
 			os.Exit(0)
 		} else {
 			log.Fatal(err)
@@ -43,7 +43,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "version"
 	app.Usage = "CLI command to verify versions and version constraints."
-	app.Version = "1.0.2"
+	app.Version = "1.0.3"
 	app.Authors = []cli.Author{
 		cli.Author{
 			Name:  "Ivan Diachenko",
@@ -55,10 +55,11 @@ func main() {
 		var versionString string
 		constrains := c.Args().First()
 		if c.NArg() > 1 {
-			versionString = strings.Join(c.Args().Tail(), ",")
+			versionString = strings.Join(c.Args().Tail(), "")
 		} else {
 			reader := bufio.NewReader(os.Stdin)
 			versionString, _ = reader.ReadString('\n')
+			versionString = strings.Trim(versionString, "\n ")
 		}
 
 		checkVersion, err := extractVersion(versionString)
@@ -74,7 +75,7 @@ func main() {
 			if !booleanMode {
 				log.Printf("%s satisfies constraints %s", ver, constraints)
 			} else {
-				log.Print("1")
+				fmt.Print("true")
 			}
 		} else {
 			processError(fmt.Errorf("%s doesn't satisfies constraints %s", ver, constraints))
