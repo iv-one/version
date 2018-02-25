@@ -1,5 +1,6 @@
 # version
 [![go report](https://goreportcard.com/badge/github.com/ivan-dyachenko/version)](https://goreportcard.com/report/github.com/ivan-dyachenko/version)
+[![Release](https://img.shields.io/badge/release-1.0.3-brightgreen.svg)](https://github.com/ivan-dyachenko/version/releases/tag/v1.0.3)
 
 CLI command to verify versions and version constraints build based [hashicorp/go-version](https://github.com/hashicorp/go-version).
 
