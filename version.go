@@ -3,15 +3,33 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
 
+	"github.com/urfave/cli"
+
 	version "github.com/hashicorp/go-version"
 )
 
+var (
+	booleanMode bool
+)
+
+func processError(err error) {
+	if err != nil {
+		if booleanMode {
+			fmt.Print("0")
+			os.Exit(0)
+		} else {
+			log.Fatal(err)
+		}
+	}
+}
+
 func extractVersion(str string) (string, error) {
-	re := regexp.MustCompile("(\\d+.[\\d\\.]+)")
+	re := regexp.MustCompile("(\\d[\\d\\.]*)")
 	match := re.FindStringSubmatch(str)
 	if len(match) == 0 {
 		return "", fmt.Errorf("Can't extract version from %s", str)
@@ -20,28 +38,60 @@ func extractVersion(str string) (string, error) {
 }
 
 func main() {
-	constrains := strings.Join(os.Args[1:], "")
-	reader := bufio.NewReader(os.Stdin)
-	ver, _ := reader.ReadString('\n')
+	log.SetFlags(0)
 
-	checkVersion, err := extractVersion(ver)
-	if err != nil {
-		panic(err)
+	app := cli.NewApp()
+	app.Name = "version"
+	app.Usage = "CLI command to verify versions and version constraints."
+	app.Version = "1.0.2"
+	app.Authors = []cli.Author{
+		cli.Author{
+			Name:  "Ivan Diachenko",
+			Email: "ivan.dyachenko@gmail.com",
+		},
+	}
+	app.UsageText = "version [global options] constraints [version]"
+	app.Action = func(c *cli.Context) error {
+		var versionString string
+		constrains := c.Args().First()
+		if c.NArg() > 1 {
+			versionString = strings.Join(c.Args().Tail(), ",")
+		} else {
+			reader := bufio.NewReader(os.Stdin)
+			versionString, _ = reader.ReadString('\n')
+		}
+
+		checkVersion, err := extractVersion(versionString)
+		processError(err)
+
+		ver, err := version.NewVersion(checkVersion)
+		processError(err)
+
+		constraints, err := version.NewConstraint(constrains)
+		processError(err)
+
+		if constraints.Check(ver) {
+			if !booleanMode {
+				log.Printf("%s satisfies constraints %s", ver, constraints)
+			} else {
+				log.Print("1")
+			}
+		} else {
+			processError(fmt.Errorf("%s doesn't satisfies constraints %s", ver, constraints))
+		}
+		return nil
 	}
 
-	v1, err := version.NewVersion(checkVersion)
-	if err != nil {
-		panic(err)
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:        "boolean, b",
+			Usage:       "boolean mode return '1' or '0' and always exit with 0",
+			Destination: &booleanMode,
+		},
 	}
 
-	constraints, err := version.NewConstraint(constrains)
+	err := app.Run(os.Args)
 	if err != nil {
-		panic(err)
-	}
-
-	if constraints.Check(v1) {
-		fmt.Printf("%s satisfies constraints %s", v1, constraints)
-	} else {
-		panic(fmt.Errorf("%s doesn't satisfies constraints %s", v1, constraints))
+		log.Fatal(err)
 	}
 }
