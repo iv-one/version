@@ -17,9 +17,36 @@ For other operating systems check [releases](https://github.com/ivan-dyachenko/v
 
 # Basic usage
 
-```
+```bash
 version ">=1.0, <2.0" "1.7"
 go version | version ">=1.9"
+```
+
+# Usage in the bash scripts
+
+`version -b "..."` returns `true|false` that can be used in bash scripts
+
+Check `git` version by using [pipeline](https://en.wikipedia.org/wiki/Pipeline_(Unix):
+```bash
+#!/bin/bash
+
+# version supports Pipeline (Unix)
+if `git version | version -b ">2.15.0"`; then
+  echo "git version > 2.15.0"
+else
+  echo "please install git > 2.15.0"
+fi
+```
+
+Check `gcc` version:
+```bash
+#!/bin/bash
+
+if `version -b ">=9.0.0" "$(gcc --version)"`; then
+  echo "gcc version satisfies constraints >=9.0.0"
+else
+  echo "gcc version doesn't satisfies constraints >=9.0.0"
+fi
 ```
 
 # Issues and Contributing

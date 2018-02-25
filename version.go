@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
@@ -39,7 +40,31 @@ func ExtractVersion(str string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("Can't extract version from %s", str)
+	return "", fmt.Errorf("Can't extract version from \"%s\"", str)
+}
+
+func readFromPipe() (string, error) {
+	info, err := os.Stdin.Stat()
+	if err != nil {
+		panic(err)
+	}
+
+	if info.Mode()&os.ModeCharDevice != 0 || info.Size() <= 0 {
+		return "", fmt.Errorf("The command is intended to work with pipes\nUsage: go version | version -b \">=1.9\"")
+	}
+
+	reader := bufio.NewReader(os.Stdin)
+	var result []string
+
+	for {
+		input, _, err := reader.ReadRune()
+		if err != nil && err == io.EOF {
+			break
+		}
+		result = append(result, fmt.Sprintf("%c", input))
+	}
+
+	return strings.Join(result, ""), nil
 }
 
 func main() {
@@ -58,13 +83,14 @@ func main() {
 	app.UsageText = "version [global options] constraints [version]"
 	app.Action = func(c *cli.Context) error {
 		var versionString string
+		var err error
+
 		constrains := c.Args().First()
 		if c.NArg() > 1 {
 			versionString = strings.Join(c.Args().Tail(), "")
 		} else {
-			reader := bufio.NewReader(os.Stdin)
-			versionString, _ = reader.ReadString('\n')
-			versionString = strings.Trim(versionString, "\n ")
+			versionString, err = readFromPipe()
+			processError(err)
 		}
 
 		checkVersion, err := ExtractVersion(versionString)
