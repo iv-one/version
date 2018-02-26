@@ -73,7 +73,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "version"
 	app.Usage = "CLI command to verify versions and version constraints."
-	app.Version = "1.0.3"
+	app.Version = "1.0.4"
 	app.Authors = []cli.Author{
 		cli.Author{
 			Name:  "Ivan Diachenko",
