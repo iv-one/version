@@ -81,11 +81,34 @@ func main() {
 		},
 	}
 	app.UsageText = "version [global options] constraints [version]"
+	app.Commands = []cli.Command{
+		{
+			Name:    "parse",
+			Aliases: []string{"p"},
+			Usage:   "parse version from arguments or pipe",
+			Action: func(c *cli.Context) error {
+				var versionString string
+				var err error
+
+				if c.NArg() > 0 {
+					versionString = strings.Join(c.Args(), "")
+				} else {
+					versionString, err = readFromPipe()
+					processError(err)
+				}
+
+				parsedVersion, err := ExtractVersion(versionString)
+				processError(err)
+
+				fmt.Println(parsedVersion)
+				return nil
+			},
+		},
+	}
 	app.Action = func(c *cli.Context) error {
 		var versionString string
 		var err error
 
-		constrains := c.Args().First()
 		if c.NArg() > 1 {
 			versionString = strings.Join(c.Args().Tail(), "")
 		} else {
@@ -99,7 +122,7 @@ func main() {
 		ver, err := version.NewVersion(checkVersion)
 		processError(err)
 
-		constraints, err := version.NewConstraint(constrains)
+		constraints, err := version.NewConstraint(c.Args().First())
 		processError(err)
 
 		if constraints.Check(ver) {
