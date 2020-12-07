@@ -22,7 +22,7 @@ func processError(err error) {
 	if err != nil {
 		if booleanMode {
 			fmt.Print("false")
-			os.Exit(0)
+			os.Exit(1)
 		} else {
 			log.Fatal(err)
 		}
@@ -130,6 +130,7 @@ func main() {
 				log.Printf("%s satisfies constraints %s", ver, constraints)
 			} else {
 				fmt.Print("true")
+				os.Exit(0)
 			}
 		} else {
 			processError(fmt.Errorf("%s doesn't satisfies constraints %s", ver, constraints))
